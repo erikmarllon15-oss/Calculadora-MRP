@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bracell - Planning Stock</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f7f9fa;
+        color: #333;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #004b2d;
+        color: white;
+        text-align: center;
+        padding: 25px;
+    }
+    .titulo {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 0;
+    }
+    .subtitulo {
+        font-size: 16px;
+        margin: 5px 0 0 0;
+        color: #d9f5e5;
+        letter-spacing: 1px;
+    }
+    main {
+        max-width: 750px;
+        background: white;
+        margin: 30px auto;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+    input, select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-top: 5px;
+        font-size: 15px;
+    }
+    button {
+        background-color: #007c41;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        margin-top: 25px;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+    }
+    button:hover {
+        background-color: #005c31;
+    }
+    .resultado {
+        background: #e8f5ee;
+        border-left: 5px solid #007c41;
+        padding: 15px;
+        margin-top: 25px;
+        border-radius: 8px;
+    }
+    .resultado p {
+        font-size: 17px;
+        margin: 8px 0;
+    }
+    footer {
+        text-align: center;
+        font-size: 13px;
+        margin-top: 20px;
+        color: #777;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1 class="titulo">Bracell - Planning Stock</h1>
+    <p class="subtitulo">Calculadora de Parâmetros MRP</p>
+</header>
+
+<main>
+    <h1 style="text-align:center; color:#004b2d;">📊 Cálculo de Parâmetros</h1>
+
+    <label>Consumo</label>
+    <input type="number" id="consumo" placeholder="Ex: 1000">
+
+    <label>Período do consumo</label>
+    <select id="periodo">
+        <option value="dia">Diário</option>
+        <option value="semana">Semanal</option>
+        <option value="mes">Mensal</option>
+        <option value="ano">Anual</option>
+    </select>
+
+    <label>Nível de serviço (%)</label>
+    <input type="number" id="nivelServico" placeholder="Ex: 95" min="0" max="100">
+
+    <label>Valor unitário (R$)</label>
+    <input type="number" id="valorUnitario" placeholder="Ex: 12.50" step="0.01">
+
+    <label>Tempo de entrega (dias)</label>
+    <input type="number" id="leadTime" placeholder="Ex: 15">
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div id="resultado" class="resultado" style="display:none;">
+        <h3>📈 Resultados:</h3>
+        <p id="pontoReabastecimento"></p>
+        <p id="estoqueMaximo"></p>
+        <p id="valorMedio"></p>
+        <p id="valorTotal"></p>
+    </div>
+</main>
+
+<footer>
+    © Bracell - Ferramenta de apoio ao planejamento de materiais.
+</footer>
+
+<script>
+function calcular() {
+    const consumo = parseFloat(document.getElementById("consumo").value) || 0;
+    const periodo = document.getElementById("periodo").value;
+    const nivelServico = parseFloat(document.getElementById("nivelServico").value) || 0;
+    const valorUnitario = parseFloat(document.getElementById("valorUnitario").value) || 0;
+    const leadTime = parseFloat(document.getElementById("leadTime").value) || 0;
+
+    // Converte consumo para diário
+    let consumoDiario = consumo;
+    if (periodo === "semana") consumoDiario = consumo / 7;
+    if (periodo === "mes") consumoDiario = consumo / 30;
+    if (periodo === "ano") consumoDiario = consumo / 365;
+
+    // Ajuste do estoque de segurança pelo nível de serviço
+    const fatorServico = 1 + (nivelServico - 90) / 100;
+    const estoqueSeguranca = consumoDiario * (leadTime * 0.2) * fatorServico;
+
+    const pontoReabastecimento = (consumoDiario * leadTime) + estoqueSeguranca;
+    const estoqueMaximo = pontoReabastecimento + (consumoDiario * (leadTime * 0.5));
+    const valorMedio = ((pontoReabastecimento + estoqueMaximo) / 2) * valorUnitario;
+    const valorTotal = estoqueMaximo * valorUnitario;
+
+    document.getElementById("pontoReabastecimento").innerHTML = 
+        `📍 <b>Ponto de Reabastecimento Ideal:</b> ${pontoReabastecimento.toFixed(2)} unidades`;
+    document.getElementById("estoqueMaximo").innerHTML = 
+        `📦 <b>Estoque Máximo Ideal:</b> ${estoqueMaximo.toFixed(2)} unidades`;
+    document.getElementById("valorMedio").innerHTML = 
+        `💰 <b>Valor Médio em Estoque:</b> R$ ${valorMedio.toFixed(2)}`;
+    document.getElementById("valorTotal").innerHTML = 
+        `💸 <b>Valor Total em Estoque:</b> R$ ${valorTotal.toFixed(2)}`;
+
+    document.getElementById("resultado").style.display = "block";
+}
+</script>
+
+</body>
+</html>
